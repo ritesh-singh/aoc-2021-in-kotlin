@@ -1,3 +1,7 @@
+package day04
+
+import readInput
+
 fun main() {
 
     data class Cell(
@@ -146,11 +150,11 @@ fun main() {
         return getLastWinnerFinalScore(randomNumbers,boards)
     }
 
-    val testInput = readInput("Day04_test")
+    val testInput = readInput("/day04/Day04_test")
     check(part1(testInput) == 4512)
     check(part2(testInput) == 1924)
 
-    val input = readInput("Day04")
+    val input = readInput("/day04/Day04")
     println(part1(input))
     println(part2(input))
 }
