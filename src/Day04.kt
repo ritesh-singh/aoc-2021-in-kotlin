@@ -8,8 +8,7 @@ fun main() {
         var randomNumber:Int = 0
     )
 
-
-    fun checkWinnerInPart1(randomNumbers: List<Int>, boards: List<Array<Array<Cell?>>>): Int {
+    fun getFirstWinnerFinalScore(randomNumbers: List<Int>, boards: List<Array<Array<Cell?>>>): Int {
         for (randomNumber in randomNumbers){
             label@ for (board in boards) {
                 var winner = false
@@ -36,7 +35,6 @@ fun main() {
                             if (!winner) { // check in column
                                 for (i in 0..4) {
                                     if (!board[i][col]!!.isMarked) {
-                                        winner = false
                                         break
                                     }
                                     if (i == 4) {
@@ -54,9 +52,9 @@ fun main() {
         return 0
     }
 
-    fun checkWinnerInPart2(randomNumbers: List<Int>, boards: List<Array<Array<Cell?>>>): Int {
+    fun getLastWinnerFinalScore(randomNumbers: List<Int>, boards: List<Array<Array<Cell?>>>): Int {
         var winPos = 0
-        for (randomNumber in randomNumbers){
+        label1@ for (randomNumber in randomNumbers){
             label@ for (board in boards) {
                 var winner = false
                 var sum = board[0][0]!!.sum
@@ -84,7 +82,6 @@ fun main() {
                                 if (!winner) { // check in column
                                     for (i in 0..4) {
                                         if (!board[i][col]!!.isMarked) {
-                                            winner = false
                                             break
                                         }
                                         if (i == 4) {
@@ -103,66 +100,50 @@ fun main() {
             }
         }
 
-        val sortedBoard = boards.sortedByDescending {
+        return boards.sortedByDescending {
             it[0][0]!!.winPos
+        }[0][0][0].let {
+            it!!.sum * it.randomNumber
         }
+    }
 
-        return sortedBoard[0][0][0]!!.sum *  sortedBoard[0][0][0]!!.randomNumber
+    fun initBoards(input: List<String>, boards: MutableList<Array<Array<Cell?>>>) {
+        var cell: Array<Array<Cell?>> = Array(5) { arrayOfNulls(5) }
+        var index = 2
+        while (index < input.size) {
+            if (input[index].isNotBlank()) {
+                var counter = index
+                for (row in 0..4) {
+                    val inputValue = input[counter++].split(" ").filter { it.isNotBlank() }.map { it.toInt() }
+                    for (col in 0..4) {
+                        cell[row][col] = Cell(number = inputValue[col])
+                        cell[0][0]!!.sum += inputValue[col]
+                    }
+                }
+                index += 5
+                boards.add(cell)
+                cell = Array(5) { arrayOfNulls(5) }
+            } else {
+                ++index
+            }
+        }
     }
 
     fun part1(input: List<String>): Int {
         // Initialise stuff
         val randomNumbers: List<Int> = input[0].trim().split(",").map { it.toInt() }
         val boards = mutableListOf<Array<Array<Cell?>>>()
-        var cell: Array<Array<Cell?>> = Array(5) { arrayOfNulls(5) }
-        var index = 2
-        while (index < input.size) {
-            if (input[index].isNotBlank()) {
-                var counter = index
-                for (row in 0..4) {
-                    val inputValue = input[counter++].split(" ").filter { it.isNotBlank() }.map { it.toInt() }
-                    for (col in 0..4) {
-                        cell[row][col] = Cell(number = inputValue[col])
-                        cell[0][0]!!.sum += inputValue[col]
-                    }
-                }
-                index += 5
-                boards.add(cell)
-                cell = Array(5) { arrayOfNulls(5) }
-            } else {
-                ++index
-            }
-        }
-
-        return checkWinnerInPart1(randomNumbers,boards)
+        initBoards(input,boards)
+        return getFirstWinnerFinalScore(randomNumbers,boards)
     }
-
 
     fun part2(input: List<String>): Int {
         // Initialise stuff
         val randomNumbers: List<Int> = input[0].trim().split(",").map { it.toInt() }
         val boards = mutableListOf<Array<Array<Cell?>>>()
-        var cell: Array<Array<Cell?>> = Array(5) { arrayOfNulls(5) }
-        var index = 2
-        while (index < input.size) {
-            if (input[index].isNotBlank()) {
-                var counter = index
-                for (row in 0..4) {
-                    val inputValue = input[counter++].split(" ").filter { it.isNotBlank() }.map { it.toInt() }
-                    for (col in 0..4) {
-                        cell[row][col] = Cell(number = inputValue[col])
-                        cell[0][0]!!.sum += inputValue[col]
-                    }
-                }
-                index += 5
-                boards.add(cell)
-                cell = Array(5) { arrayOfNulls(5) }
-            } else {
-                ++index
-            }
-        }
+        initBoards(input,boards)
 
-        return checkWinnerInPart2(randomNumbers,boards)
+        return getLastWinnerFinalScore(randomNumbers,boards)
     }
 
     val testInput = readInput("Day04_test")
