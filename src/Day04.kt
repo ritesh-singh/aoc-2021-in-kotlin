@@ -54,7 +54,7 @@ fun main() {
 
     fun getLastWinnerFinalScore(randomNumbers: List<Int>, boards: List<Array<Array<Cell?>>>): Int {
         var winPos = 0
-        label1@ for (randomNumber in randomNumbers){
+        for (randomNumber in randomNumbers){
             label@ for (board in boards) {
                 var winner = false
                 var sum = board[0][0]!!.sum
@@ -108,7 +108,7 @@ fun main() {
     }
 
     fun initBoards(input: List<String>, boards: MutableList<Array<Array<Cell?>>>) {
-        var cell: Array<Array<Cell?>> = Array(5) { arrayOfNulls(5) }
+        var board: Array<Array<Cell?>> = Array(5) { arrayOfNulls(5) }
         var index = 2
         while (index < input.size) {
             if (input[index].isNotBlank()) {
@@ -116,13 +116,13 @@ fun main() {
                 for (row in 0..4) {
                     val inputValue = input[counter++].split(" ").filter { it.isNotBlank() }.map { it.toInt() }
                     for (col in 0..4) {
-                        cell[row][col] = Cell(number = inputValue[col])
-                        cell[0][0]!!.sum += inputValue[col]
+                        board[row][col] = Cell(number = inputValue[col])
+                        board[0][0]!!.sum += inputValue[col]
                     }
                 }
                 index += 5
-                boards.add(cell)
-                cell = Array(5) { arrayOfNulls(5) }
+                boards.add(board)
+                board = Array(5) { arrayOfNulls(5) }
             } else {
                 ++index
             }
