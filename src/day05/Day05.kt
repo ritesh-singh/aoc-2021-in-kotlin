@@ -34,7 +34,7 @@ fun main() {
     // Find the cover points between two points
     fun coverPointsForHorizontalOrVerticalLine(point1: Point, point2: Point, hashMap: HashMap<Point,Int>) {
         if (checkIfXCoordsAreEqual(point1, point2) && checkIfYCoordsAreEqual(point1, point2)) return
-
+        
         if (checkIfYCoordsAreEqual(point1, point2)) {
             val max: Int
             var x = if (point1.x < point2.x) {
@@ -119,12 +119,16 @@ fun main() {
                 addCoordinateInMap(point1, mapOfCoordinates)
                 addCoordinateInMap(point2, mapOfCoordinates)
 
-                var x = if (point1.x > point2.x) point1.x - 1 else point1.x + 1
-                var y = if (point1.y > point2.y) point1.y -1 else point1.y + 1
+                val calculateMovement: (Int,Int) -> Int = { value1,value2 ->
+                    if (value1 > value2) value1 - 1 else value1 + 1
+                }
+
+                var x = calculateMovement(point1.x,point2.x)
+                var y = calculateMovement(point1.y,point2.y)
                 while (x != point2.x){
                     addCoordinateInMap(Point(x, y), mapOfCoordinates)
-                    x = if (x > point2.x) x - 1 else x + 1
-                    y = if (y > point2.y) y -1 else y + 1
+                    x = calculateMovement(x,point2.x)
+                    y = calculateMovement(y,point2.y)
                 }
             }
         }
