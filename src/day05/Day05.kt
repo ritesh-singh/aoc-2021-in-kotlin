@@ -8,10 +8,7 @@ fun main() {
     data class Point(
         val x: Int,
         val y: Int,
-    ) {
-        // this will not be used in equals, as compiler only considers props from primary constructor
-        var linesCoveringThisPoint: Int = 0
-    }
+    )
 
     // Diagonal are not considered
     fun checkIfHorizontalOrVerticalLineIsFormed(point1: Point, point2: Point): Boolean {
@@ -26,17 +23,16 @@ fun main() {
 
     fun checkIfYCoordsAreEqual(point1: Point, point2: Point) = point1.y == point2.y
 
-    fun checkIfSetContainsPoint(point: Point, listOfCoordinates: MutableSet<Point>) {
-        if (listOfCoordinates.contains(point)) {
-            ++listOfCoordinates.elementAt(listOfCoordinates.indexOf(point)).linesCoveringThisPoint
-        } else {
-            ++point.linesCoveringThisPoint
-            listOfCoordinates.add(point)
+    fun addCoordinateInMap(point: Point, hashMap: HashMap<Point,Int>) {
+        if (hashMap.containsKey(point)){
+            hashMap[point] = hashMap[point]!!.plus(1)
+        }else{
+            hashMap[point] = 1
         }
     }
 
     // Find the cover points between two points
-    fun coverPointsForHorizontalOrVerticalLine(point1: Point, point2: Point, listOfCoordinates: MutableSet<Point>) {
+    fun coverPointsForHorizontalOrVerticalLine(point1: Point, point2: Point, hashMap: HashMap<Point,Int>) {
         if (checkIfXCoordsAreEqual(point1, point2) && checkIfYCoordsAreEqual(point1, point2)) return
 
         if (checkIfYCoordsAreEqual(point1, point2)) {
@@ -51,7 +47,7 @@ fun main() {
 
             while (++x < max) {
                 val coveringPoint = Point(x, point1.y)
-                checkIfSetContainsPoint(coveringPoint, listOfCoordinates)
+                addCoordinateInMap(coveringPoint, hashMap)
             }
 
             return
@@ -68,7 +64,7 @@ fun main() {
 
         while (++y < max) {
             val coveringPoint = Point(point1.x, y)
-            checkIfSetContainsPoint(coveringPoint, listOfCoordinates)
+            addCoordinateInMap(coveringPoint, hashMap)
         }
 
     }
@@ -85,7 +81,7 @@ fun main() {
     // 5,5 -> 8,2
     fun part1(inputs: List<String>): Int {
 
-        val listOfCoordinates = mutableSetOf<Point>()
+        val mapOfCoordinates = hashMapOf<Point,Int>()
 
         for (input in inputs) {
             val splitInput = input.split(" ").filter { it != "->" }
@@ -95,21 +91,19 @@ fun main() {
             // 1 - Check if horizontal or vertical line is formed
             val isLineFormed = checkIfHorizontalOrVerticalLineIsFormed(point1, point2)
             if (isLineFormed) {
-                checkIfSetContainsPoint(point1, listOfCoordinates)
-                checkIfSetContainsPoint(point2, listOfCoordinates)
-                coverPointsForHorizontalOrVerticalLine(point1, point2, listOfCoordinates)
+                addCoordinateInMap(point1, mapOfCoordinates)
+                addCoordinateInMap(point2, mapOfCoordinates)
+                coverPointsForHorizontalOrVerticalLine(point1, point2, mapOfCoordinates)
             }
         }
 
-        return listOfCoordinates.sortedByDescending {
-            it.linesCoveringThisPoint
-        }.count {
-            it.linesCoveringThisPoint >= 2
+        return mapOfCoordinates.count {
+            it.value >= 2
         }
     }
 
     fun part2(inputs: List<String>): Int {
-        val listOfCoordinates = mutableSetOf<Point>()
+        val mapOfCoordinates = hashMapOf<Point,Int>()
 
         for (input in inputs) {
             val splitInput = input.split(" ").filter { it != "->" }
@@ -118,27 +112,25 @@ fun main() {
 
             val isLineFormed = checkIfHorizontalOrVerticalLineIsFormed(point1, point2)
             if (isLineFormed) {
-                checkIfSetContainsPoint(point1, listOfCoordinates)
-                checkIfSetContainsPoint(point2, listOfCoordinates)
-                coverPointsForHorizontalOrVerticalLine(point1, point2, listOfCoordinates)
+                addCoordinateInMap(point1, mapOfCoordinates)
+                addCoordinateInMap(point2, mapOfCoordinates)
+                coverPointsForHorizontalOrVerticalLine(point1, point2, mapOfCoordinates)
             } else if (checkIfDiagonalLineIsFormed(point1, point2)) {
-                checkIfSetContainsPoint(point1, listOfCoordinates)
-                checkIfSetContainsPoint(point2, listOfCoordinates)
+                addCoordinateInMap(point1, mapOfCoordinates)
+                addCoordinateInMap(point2, mapOfCoordinates)
 
                 var x = if (point1.x > point2.x) point1.x - 1 else point1.x + 1
                 var y = if (point1.y > point2.y) point1.y -1 else point1.y + 1
                 while (x != point2.x){
-                    checkIfSetContainsPoint(Point(x, y), listOfCoordinates)
+                    addCoordinateInMap(Point(x, y), mapOfCoordinates)
                     x = if (x > point2.x) x - 1 else x + 1
                     y = if (y > point2.y) y -1 else y + 1
                 }
             }
         }
 
-        return listOfCoordinates.sortedByDescending {
-            it.linesCoveringThisPoint
-        }.count {
-            it.linesCoveringThisPoint >= 2
+        return mapOfCoordinates.count {
+            it.value >= 2
         }
     }
 
