@@ -8,29 +8,23 @@ fun main() {
     fun Int.gaussSum() = (this * (this + 1)) / 2
 
     fun part1(inputs: List<String>): Int {
-
         val crabHPos = inputs[0].split(",").map { it.toInt() }.sorted()
-
         var fuelCost = Integer.MAX_VALUE
         (crabHPos[0]..crabHPos[crabHPos.size-1]).forEach { pos ->
             val fCost = crabHPos.map { abs(pos - it) }.reduce { acc, element -> acc + element }
             if (fCost < fuelCost) fuelCost = fCost
         }
-
-
         return fuelCost
     }
 
 
     fun part2(inputs: List<String>): Int {
         val crabHPos = inputs[0].split(",").map { it.toInt() }.sorted()
-
         var fuelCost = Integer.MAX_VALUE
         (crabHPos[0]..crabHPos[crabHPos.size-1]).forEach { pos ->
             val fCost = crabHPos.map { abs(pos - it).gaussSum() }.reduce { acc, element -> acc + element }
             if (fCost < fuelCost) fuelCost = fCost
         }
-
         return fuelCost
     }
 
