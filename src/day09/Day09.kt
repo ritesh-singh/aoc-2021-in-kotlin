@@ -44,23 +44,22 @@ fun main(){
         }
     }
 
-    fun part1(inputs: List<String>): Int {
-        val rowSize = inputs.size
-        val colSize = inputs[0].length
+    fun Array<IntArray>.getRiskLevelAndLowPointLocation():Pair<Int,List<Pair<Int,Int>>> {
+        val rowSize = this.size
+        val colSize = this[0].size
 
-        val matrix = Array(rowSize) { IntArray(colSize) }
-        inputs.initMatrix(matrix = matrix)
+        var riskLevel = 0
+        val listOfLowPointLocations = mutableListOf<Pair<Int, Int>>()
 
-        var totalCount = 0
-
+        // find lowest points
         for (row in 0 until rowSize) {
             for (col in 0 until colSize) {
-                val current = matrix[row][col]
+                val current = this[row][col]
                 var isLowest = false
                 for (direction in Direction.values()){
                     val pair = getLocationBasedOnDirection(row, col, direction)
                     if (isLocationValid(pair.first, pair.second,rowSize, colSize)) {
-                        if (current <  matrix[pair.first][pair.second]){
+                        if (current <  this[pair.first][pair.second]){
                             isLowest = true
                         }else{
                             isLowest = false
@@ -68,13 +67,24 @@ fun main(){
                         }
                     }
                 }
-                if (isLowest){
-                    totalCount += current + 1
+                if (isLowest) {
+                    riskLevel += current + 1
+                    listOfLowPointLocations.add(Pair(row,col))
                 }
             }
         }
 
-        return totalCount
+        return Pair(riskLevel,listOfLowPointLocations)
+    }
+
+    fun part1(inputs: List<String>): Int {
+        val rowSize = inputs.size
+        val colSize = inputs[0].length
+
+        val matrix = Array(rowSize) { IntArray(colSize) }
+        inputs.initMatrix(matrix = matrix)
+
+        return matrix.getRiskLevelAndLowPointLocation().first
     }
 
     // Required to check if it contains any location in bing
@@ -112,30 +122,7 @@ fun main(){
         val matrix = Array(rowSize) { IntArray(colSize) }
         inputs.initMatrix(matrix = matrix)
 
-        val lowestPoints = mutableListOf<Pair<Int, Int>>()
-
-        // find lowest points
-        for (row in 0 until rowSize) {
-            for (col in 0 until colSize) {
-                val current = matrix[row][col]
-                var isLowest = false
-                for (direction in Direction.values()){
-                    val pair = getLocationBasedOnDirection(row, col, direction)
-                    if (isLocationValid(pair.first, pair.second,rowSize, colSize)) {
-                        if (current <  matrix[pair.first][pair.second]){
-                            isLowest = true
-                        }else{
-                            isLowest = false
-                            break
-                        }
-                    }
-                }
-                if (isLowest) {
-                    lowestPoints.add(Pair(row,col))
-                }
-            }
-        }
-
+        val lowestPoints = matrix.getRiskLevelAndLowPointLocation().second
 
         val listOfBasins = mutableListOf<Int>()
         // for each low point find basin
