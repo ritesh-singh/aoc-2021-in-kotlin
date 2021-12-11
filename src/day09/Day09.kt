@@ -2,7 +2,7 @@ package day09
 
 import readInput
 
-enum class Direction {
+private enum class Direction {
     UP, DOWN, LEFT, RIGHT
 }
 
