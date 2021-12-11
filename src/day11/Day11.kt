@@ -18,17 +18,6 @@ fun main() {
         }
     }
 
-    fun Array<IntArray>.printMatrix() {
-        println("Print Matrix")
-        for (i in 0 until this.size){
-            for (j in 0 until this[0].size){
-                print(this[i][j])
-                print(" ")
-            }
-            println()
-        }
-    }
-
     val getLocationBasedOnDirection: (row: Int, col: Int, direction: Direction) -> Pair<Int, Int> =
         { row, col, direction ->
             val pair = when (direction) {
@@ -107,12 +96,40 @@ fun main() {
     }
 
     fun part2(inputs: List<String>): Int {
-        return inputs.size
+        val rowSize = inputs.size
+        val colSize = inputs[0].length
+
+        val matrix = Array(rowSize) { IntArray(colSize) }
+        inputs.initMatrix(matrix = matrix)
+
+        var step = 0
+        while (true) {
+            ++step
+            val flashedList = mutableListOf<Pair<Int, Int>>()
+            for (row in 0 until rowSize){
+                for (col in 0 until colSize){
+                    if (!flashedList.contains(Pair(row,col))){
+                        matrix[row][col] = matrix[row][col].newEnergyLevel()
+                        if (matrix[row][col].flashes()){
+                            flashedList.add(Pair(row,col))
+                            updateAdjacent(matrix,row,col,flashedList)
+                        }
+                    }
+                }
+            }
+            if (flashedList.size == rowSize * colSize) {
+                break
+            }
+        }
+
+        return step
     }
 
     val testInput = readInput("/day11/Day11_test")
     check(part1(testInput) == 1656)
+    check(part2(testInput) == 195)
 
     val input = readInput("/day11/Day11")
     println(part1(input))
+    println(part2(input))
 }
