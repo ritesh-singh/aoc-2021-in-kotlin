@@ -6,24 +6,54 @@ import java.lang.IllegalStateException
 fun main() {
 
     var totalVersion = 0
+    var totalEvaluatedResult = 0L
 
     fun String.binaryToDigit() = this.toInt(2)
+    fun String.binaryToLong() = this.toLong(2)
 
     fun String.getNBit(startIndex: Int, numberOfBit: Int) =
         this.slice(startIndex until startIndex + numberOfBit).binaryToDigit()
 
-    fun parsePacketsPart1(packet: String): Int {
+    val performCalculation: (typeId: Int, list: List<Long>) -> Long = { typeId, list ->
+        when (typeId) {
+            0 -> list.sum()
+            1 -> list.fold(1L) { acc, i -> acc * i }
+            2 -> list.minOrNull()!!
+            3 -> list.maxOrNull()!!
+            5 -> {
+                require(list.size == 2) { "Should be two sub-packets for typeId - $typeId" }
+                if (list[0] > list[1]) 1L else 0L
+            }
+            6 -> {
+                require(list.size == 2) { "Should be two sub-packets for typeId - $typeId" }
+                if (list[0] < list[1]) 1L else 0L
+            }
+            7 -> {
+                require(list.size == 2) { "Should be two sub-packets for typeId - $typeId" }
+                if (list[0] == list[1]) 1L else 0L
+            }
+            else -> throw IllegalStateException("Invalid typeId")
+        }.also { totalEvaluatedResult = it }
+    }
+
+    fun parsePackets(packet: String, literalValues: MutableList<Long>): Pair<Int, Long> {
         var currentIndex = 0
         val getNBit: (startIndex: Int, numberOfBit: Int) -> Int =
             { s, n -> packet.getNBit(s, n).also { currentIndex += n } }
 
         totalVersion += getNBit(0, 3) // version
 
-        when (getNBit(3, 3)) { // typeId
+        when (val typeId = getNBit(3, 3)) { // typeId
             4 -> {
-                while (packet[currentIndex] != '0') getNBit(currentIndex, 5)
+                val stringBuilder = StringBuilder()
+                while (packet[currentIndex] != '0') {
+                    stringBuilder.append(packet.substring(currentIndex + 1..currentIndex + 4))
+                    getNBit(currentIndex, 5)
+                }
+                stringBuilder.append(packet.substring(currentIndex + 1..currentIndex + 4))
+                literalValues.add(stringBuilder.toString().binaryToLong())
                 getNBit(currentIndex, 5)
-                return currentIndex
+                return Pair(currentIndex, -1L)
             }
             else -> {
                 when (packet[currentIndex++]) {
@@ -31,69 +61,74 @@ fun main() {
                         var index = currentIndex
                         val totalLengthInBits = getNBit(currentIndex, 15).also { index += 15 }
                         var subPacketLength = 0
+                        val subPacketLiteralValue = mutableListOf<Long>()
+                        val resultList = mutableListOf<Long>()
                         while (true) {
-                            subPacketLength += parsePacketsPart1(packet.substring(currentIndex + subPacketLength, packet.length))
+                            val subPacketParsedResult = parsePackets(packet.substring(currentIndex + subPacketLength, packet.length), literalValues = subPacketLiteralValue)
+                            subPacketLength += subPacketParsedResult.first
+                            if (subPacketParsedResult.second != -1L) resultList.add(subPacketParsedResult.second)
                             if (subPacketLength == totalLengthInBits) break
                         }
-                        return index + subPacketLength
+
+                        return if (resultList.isNotEmpty() && subPacketLiteralValue.isNotEmpty()) {
+                            val newList = mutableListOf<Long>()
+                            newList.add(performCalculation(typeId, resultList))
+                            newList.add(performCalculation(typeId, subPacketLiteralValue))
+                            Pair(index + subPacketLength, performCalculation(typeId, newList))
+                        } else if (subPacketLiteralValue.isNotEmpty()) {
+                            Pair(index + subPacketLength, performCalculation(typeId, subPacketLiteralValue))
+                        } else if (resultList.isNotEmpty()) {
+                            Pair(index + subPacketLength, performCalculation(typeId, resultList))
+                        } else {
+                            Pair(index + subPacketLength, -1L)
+                        }
                     }
                     '1' -> {
                         var indexToReturn = currentIndex
                         val next11Bits = getNBit(currentIndex, 11).also { indexToReturn += 11 }
                         var counter = 0
                         var index = 0
+                        val subPacketLiteralValue = mutableListOf<Long>()
+                        val resultList = mutableListOf<Long>()
                         while (next11Bits != counter++) {
-                            index += parsePacketsPart1(packet.substring(currentIndex + index, packet.length))
+                            val subPacketParsedResult = parsePackets(packet.substring(currentIndex + index, packet.length), literalValues = subPacketLiteralValue)
+                            index += subPacketParsedResult.first
+                            if (subPacketParsedResult.second != -1L) resultList.add(subPacketParsedResult.second)
                         }
-                        return indexToReturn + index
+
+                        return if (resultList.isNotEmpty() && subPacketLiteralValue.isNotEmpty()) {
+                            val newList = mutableListOf<Long>()
+                            newList.add(performCalculation(typeId, resultList))
+                            newList.add(performCalculation(typeId, subPacketLiteralValue))
+                            Pair(indexToReturn + index, performCalculation(typeId, newList))
+                        } else if (subPacketLiteralValue.isNotEmpty()) {
+                            Pair(indexToReturn + index, performCalculation(typeId, subPacketLiteralValue))
+                        } else if (resultList.isNotEmpty()) {
+                            Pair(indexToReturn + index, performCalculation(typeId, resultList))
+                        } else {
+                            Pair(indexToReturn + index, -1L)
+                        }
                     }
                 }
             }
         }
 
-        return 0
+        return Pair(currentIndex, -1L)
     }
 
     fun part1(inputs: List<String>): Int {
         totalVersion = 0
-        val bitsTransmissionInBinary = inputs[0]
-            .map {
-                it.digitToInt(16).toString(2).padStart(4, '0')
-            }.joinToString("")
-
-        parsePacketsPart1(packet = bitsTransmissionInBinary)
-
+        val bitsTransmissionInBinary = inputs[0].map { it.digitToInt(16).toString(2).padStart(4, '0') }.joinToString("")
+        parsePackets(packet = bitsTransmissionInBinary, mutableListOf())
         return totalVersion
-    }
-
-    val performCalculation: (typeId: Int, list: List<Long>) -> Long = { typeId, list ->
-        when (typeId) {
-            0 -> list.sum()
-            1 -> list.reduce { acc, i -> acc * i }
-            2 -> list.minOrNull()!!
-            3 -> list.maxOrNull()!!
-            5 -> if (list[0] > list[1]) 1 else 0
-            6 -> if (list[0] > list[1]) 0 else 1
-            7 -> if (list[0] == list[1]) 1 else 0
-            else -> throw IllegalStateException()
-        }
     }
 
     fun part2(inputs: List<String>): Long {
         totalVersion = 0
-        val bitsTransmissionInBinary = inputs[0]
-            .map {
-                it.digitToInt(16).toString(2).padStart(4, '0')
-            }.joinToString("")
-
-        return 0
+        val bitsTransmissionInBinary = inputs[0].map { it.digitToInt(16).toString(2).padStart(4, '0') }.joinToString("")
+        parsePackets(bitsTransmissionInBinary, mutableListOf())
+        return totalEvaluatedResult
     }
-
-    val testInput = readInput("/day16/Day16_test")
-//    check(part1(testInput) == 31)
-
-    part2(testInput)
-//    println(part2(testInput))
 
     val input = readInput("/day16/Day16")
     println(part1(input))
