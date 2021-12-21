@@ -14,34 +14,31 @@ class Node(
 ){
     fun isPair() = this.value == null
     fun isReg() = this.value!=null
+    fun toRegNode(value:Int){
+        this.value = value
+        this.left = null
+        this.right = null
+    }
+    fun toPairNode(left:Node?, right: Node?){
+        this.value = null
+        this.left = left
+        this.right = right
+    }
 }
 
 class BinTree {
 
     private var root: Node? = null
 
-     // Post order traversal
-    fun traverse() {
-        fun traverse(root: Node?) {
-            if (root != null) {
-                traverse(root.left)
-                traverse(root.right)
-                if (root.value != null) print("${root.value} ")
-            }
-        }
-        traverse(root)
-        println()
-    }
-
     private fun explode():Boolean {
         var nestingLevel = 0
         var explodingNode: Node? = null
         val traversalList = mutableListOf<Node>()
-        fun explode(root: Node?) {
+        fun traverse(root: Node?) {
             if (root != null) {
                 ++nestingLevel
-                explode(root.left)
-                explode(root.right)
+                traverse(root.left)
+                traverse(root.right)
                 if (root.isReg()) traversalList.add(root)
                 if (nestingLevel == 5 && root.isPair() && explodingNode == null) {
                     explodingNode = root
@@ -49,8 +46,8 @@ class BinTree {
                 --nestingLevel
             }
         }
-        explode(root)
-        if (explodingNode != null) {
+        traverse(root)
+        if (explodingNode != null) { // explode
             val leftIndex = traversalList.indexOf(explodingNode!!.left)
             val rightIndex = leftIndex+1
             if (leftIndex - 1 >= 0) {
@@ -61,9 +58,7 @@ class BinTree {
                 val rightNode = traversalList[rightIndex + 1]
                 rightNode.value = rightNode.value?.plus(explodingNode!!.right!!.value!!)
             }
-            explodingNode!!.value = 0
-            explodingNode!!.left = null
-            explodingNode!!.right = null
+            explodingNode!!.toRegNode(0)
         }
 
         return explodingNode != null
@@ -121,9 +116,7 @@ class BinTree {
                     splitDone = true
                     val regValue = root.value!!
                     val (leftVal, rightVal) = if (regValue % 2 == 0) listOf(regValue/2,regValue/2) else listOf(floor(regValue/2.0).toInt(), ceil(regValue/2.0).toInt())
-                    root.value = null
-                    root.left = Node(value = leftVal)
-                    root.right = Node(value = rightVal)
+                    root.toPairNode(Node(leftVal), Node(rightVal))
                     throw RuntimeException("Split done")
                 }
             }
@@ -145,9 +138,7 @@ class BinTree {
                 magnitude(root.right)
                 val first = if (root.left != null && root.left!!.value != null) 3 * root.left!!.value!! else 0
                 val second = if (root.right != null && root.right!!.value != null) 2 * root.right!!.value!! else 0
-                root.value = first+second
-                root.left = null
-                root.right = null
+                root.toRegNode(value = first+second)
             }
         }
         magnitude(root)
