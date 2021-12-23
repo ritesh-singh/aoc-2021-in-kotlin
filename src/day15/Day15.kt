@@ -40,7 +40,7 @@ fun Array<IntArray>.getAdjacent(row: Int, col: Int): List<Pair<Int, Int>> {
     return adjacentList
 }
 
-fun List<String>.initMatrix(matrix: Array<IntArray>) {
+private fun List<String>.initMatrix(matrix: Array<IntArray>) {
     val rowSize = size
     val colSize = this[0].length
     for (row in 0 until rowSize) {
@@ -50,7 +50,7 @@ fun List<String>.initMatrix(matrix: Array<IntArray>) {
     }
 }
 
-fun Array<IntArray>.printMatrix(){
+private fun Array<IntArray>.printMatrix(){
     for (row in 0 until this.size) {
         for (col in 0 until this[0].size) {
             print(this[row][col])
