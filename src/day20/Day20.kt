@@ -22,7 +22,7 @@ fun main() {
         return newInputGrid
     }
 
-    fun List<String>.initGrid():Array<CharArray>{
+    fun List<String>.initGrid(): Array<CharArray> {
         val grid = Array(this.size) { CharArray(this[0].length) }
         for (row in this.indices) {
             for (col in 0 until this[0].length) {
@@ -35,7 +35,7 @@ fun main() {
     fun solution(inputs: List<String>, times: Int): Int {
         val algorithm = inputs[0]
 
-        val inputList = inputs.subList(2,inputs.size)
+        val inputList = inputs.subList(2, inputs.size)
         val inputImage = inputList.initGrid()
 
 
@@ -46,8 +46,8 @@ fun main() {
         var outputGrid = Array(inputList.size + 2) { CharArray(inputList[0].length + 2) }
         repeat(times) {
             result = 0
-            for (row in inputGrid.indices){
-                for (col in 0 until inputGrid[0].size){
+            for (row in inputGrid.indices) {
+                for (col in 0 until inputGrid[0].size) {
                     listOf(
                         Pair(row - 1, col - 1), Pair(row - 1, col), Pair(row - 1, col + 1),
                         Pair(row, col - 1), Pair(row, col), Pair(row, col + 1),
@@ -79,6 +79,6 @@ fun main() {
 
 
     val input = readInput("/day20/Day20")
-    println(solution(input,times = 2))
-    println(solution(input,times = 50))
+    println(solution(input, times = 2))
+    println(solution(input, times = 50))
 }
